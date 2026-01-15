@@ -1,373 +1,151 @@
 # Document Categorizer Agent
 
-## Purpose
+## What It Does
 
-The Document Categorizer Agent demonstrates a **configuration-driven agent** that combines:
-- **Deterministic operations** (file I/O, JSON handling)
-- **Variable LLM inference** (mock categorization in v0.1, real LLM in v0.2+)
+Automatically categorizes text documents based on content and moves them to appropriate folders.
 
-This agent processes text documents, analyzes their content using an LLM, and routes them to different output folders based on the assigned category.
+**Input**: Text files in a watched folder
+**Output**: Documents moved to category folders + metadata JSON files
 
-## Use Case
+**Categories**: error, success, warning, info, unknown
 
-**Scenario**: You have a folder of incoming documents that need to be automatically triaged and organized.
+## Quick Start
 
-- `inbox/` - Raw documents arrive
-- Agent reads each document
-- Mock LLM analyzes content and assigns category (error, success, warning, info)
-- Document is moved to appropriate folder with metadata:
-  - `errors/` - Problem reports, failures
-  - `processed/` - Successful/completed items
-  - `review/` - Warnings, info, unknown categories
+```bash
+# Create test folders
+mkdir -p /tmp/doc_test/{inbox,processed,errors,review}
 
-## How It Works
+# Create a test file
+echo "System error occurred" > /tmp/doc_test/inbox/test.txt
 
-### Configuration-Driven Behavior
+# Run agent
+cd agents/examples/document_categorizer
+INBOX_PATH="/tmp/doc_test/inbox" \
+PROCESSED_PATH="/tmp/doc_test/processed" \
+ERRORS_PATH="/tmp/doc_test/errors" \
+REVIEW_PATH="/tmp/doc_test/review" \
+python run.py
 
-No Python code changes needed. Behavior is entirely defined by:
-
-**config.yaml**:
-- Trigger: watches `$INBOX_PATH` for `*.txt` files
-- Workflow: 7-step pipeline with nested conditional routing
-- Tools: file.read, llm.analyze, json.stringify, file.move, log
-- Logging: debug level with full step tracking
-
-### Workflow Steps
-
-1. **read_document** (deterministic)
-   - Reads raw document content from file
-   - Input: `${trigger.file_path}`
-   - Output: `document_text`
-
-2. **analyze_content** (variable - LLM inference)
-   - Passes document text to LLM
-   - Provider: "mock" (returns deterministic responses based on keywords)
-   - Output: `analysis_result` with:
-     - `category` (error, success, warning, info, unknown)
-     - `tags` (list of extracted topics)
-     - `confidence` (0.0-1.0 score)
-     - `summary` (brief description)
-     - `analysis` (detailed metrics)
-
-3. **create_metadata** (deterministic)
-   - Packages analysis result as JSON metadata
-   - Combines filename, timestamp, category, tags, analysis
-   - Output: `metadata_json` (stringified)
-
-4. **route_by_category** (deterministic conditional)
-   - First decision: Is category == "error"?
-   - If true -> route to errors folder
-   - If false -> check next condition
-
-5. **check_success** (nested deterministic conditional)
-   - Is category == "success"?
-   - If true -> route to processed folder
-   - If false -> route to review folder
-
-6-7. **Routing Actions** (deterministic)
-   - Write metadata JSON to `.meta.json` file
-   - Move original document to destination folder
-   - Log result with appropriate level
-
-## Variable vs Deterministic Behavior
-
-### Deterministic Operations
-```yaml
-# File I/O - same input always produces same output
-- action: "file.read"
-  params:
-    path: "${trigger.file_path}"
-
-# JSON operations - same input = same output
-- action: "json.stringify"
-  params:
-    data: {...}
-
-# Conditional logic - based on concrete values
-- action: "conditional"
-  condition: "${analysis_result.category} == error"
+# Check result
+ls /tmp/doc_test/errors/  # test.txt should be here
 ```
-
-### Variable Operations (LLM Inference)
-```yaml
-# LLM analysis - can vary based on content
-- action: "llm.analyze"
-  params:
-    text: "${read_document.document_text}"
-    provider: "mock"  # Will switch to "openai" in v0.2
-```
-
-The **mock provider** in v0.1 returns **deterministic results** based on keyword matching, making tests repeatable.
-
-## Mock LLM Behavior
-
-The mock provider implements keyword-based categorization:
-
-| Keywords | Category | Confidence |
-|----------|----------|-----------|
-| error, failed, problem, issue, bug | error | 0.95 |
-| success, completed, done, finished, working | success | 0.92 |
-| warning, caution, attention, careful | warning | 0.88 |
-| info, information, note, notice | info | 0.85 |
-| (none match) | unknown | 0.50 |
-
-Tags are added based on:
-- Text > 100 chars -> `detailed`
-- Contains user/account/profile words -> `user-related`
-- Contains system/server/network words -> `system-related`
-- Contains security/auth/permission words -> `security-related`
 
 ## Configuration
 
-### Environment Variables
-```bash
-export INBOX_PATH="/path/to/inbox"          # Where documents arrive
-export ERRORS_PATH="/path/to/errors"        # Route for error category
-export PROCESSED_PATH="/path/to/processed"  # Route for success category
-export REVIEW_PATH="/path/to/review"        # Route for other categories
-```
+### Three Provider Options
 
-### Quick Test
+**Default (Mock) - config.yaml**
 ```bash
-cd agents/examples/document_categorizer
 python run.py
+# Uses keyword-based mock (free, instant)
 ```
 
-## Upgrade Path
-
-### v0.2 - Real OpenAI Integration (IMPLEMENTED)
-
-Phase 2 is complete! The framework now supports real OpenAI API calls with the same configuration-driven approach.
-
-**Setup:**
+**OpenAI - config.openai.yaml**
 ```bash
-pip install openai>=1.0.0
-export OPENAI_API_KEY="sk-..."
+OPENAI_API_KEY="sk-..." python -c "from runtime.agent import Agent; Agent(config_path='config.openai.yaml').run_sync()"
+# Uses GPT-3.5-turbo (fast, $)
 ```
 
-**Configuration Changes:**
+**Claude - config.claude.yaml**
+```bash
+ANTHROPIC_API_KEY="sk-ant-..." python -c "from runtime.agent import Agent; Agent(config_path='config.claude.yaml').run_sync()"
+# Uses Claude 3 Sonnet (quality, $$)
+```
+
+## How It Works
+
+1. Watches `INBOX_PATH` for new `.txt` files
+2. Reads file content
+3. Sends to LLM for categorization
+4. Routes based on category:
+   - **error** → ERRORS_PATH
+   - **success** → PROCESSED_PATH
+   - **warning, info, unknown** → REVIEW_PATH
+5. Creates `.meta.json` file with analysis
+
+## Workflow Steps
+
 ```yaml
-- action: "llm.analyze"
-  params:
-    text: "${read_document.document_text}"
-    prompt: "Your custom prompt here..."
-    provider: "openai"           # <- Changed from "mock"
-    model: "gpt-3.5-turbo"       # <- New (or "gpt-4")
-    api_key: "${OPENAI_API_KEY}" # <- New (from environment)
+read_file → analyze_content → create_metadata → route_by_category → move_file
 ```
 
-**Key Features:**
-- **Structured Output**: Prompts are designed to return JSON with category, tags, confidence
-- **Error Handling**: Graceful handling of API errors, rate limits, connection issues
-- **Response Parsing**: Handles JSON in markdown code blocks or raw format
-- **Validation**: Normalizes responses (fixes invalid categories, clamps confidence scores)
-- **Same Interface**: Returns same structure as mock provider for full compatibility
+### Conditional Routing
 
-**Using the OpenAI Config:**
+```
+Is category == "error"?
+  ├─ YES → move to errors/
+  └─ NO  → Is category == "success"?
+           ├─ YES → move to processed/
+           └─ NO  → move to review/
+```
+
+## Environment Variables
+
 ```bash
-# Use the provided openai config instead of default mock config
-cd agents/examples/document_categorizer
-OPENAI_API_KEY="sk-..." INBOX_PATH="/tmp/inbox" python -c "
-from runtime.agent import Agent
-agent = Agent(config_path='config.openai.yaml')
-agent.run_sync()
-"
+INBOX_PATH        # Folder to watch for new files (required)
+PROCESSED_PATH    # Folder for success files (required)
+ERRORS_PATH       # Folder for error files (required)
+REVIEW_PATH       # Folder for other files (required)
+OPENAI_API_KEY    # Only needed for OpenAI provider
+ANTHROPIC_API_KEY # Only needed for Claude provider
 ```
 
-**Testing without API:**
-All tests use mock OpenAI client, so you can verify the integration without API costs:
+## Test
+
 ```bash
-pytest tests/test_document_categorizer.py::TestLLMTool::test_openai_llm_analyze_success -v
-pytest tests/test_document_categorizer.py -k openai -v
+# Run tests
+pytest ../../tests/test_document_categorizer.py -v
+
+# Test specific provider
+pytest ../../tests/test_document_categorizer.py -k "mock" -v      # Mock tests
+pytest ../../tests/test_document_categorizer.py -k "openai" -v    # OpenAI tests
+pytest ../../tests/test_document_categorizer.py -k "claude" -v    # Claude tests
+pytest ../../tests/test_document_categorizer.py -k "switching" -v # Provider switching
 ```
 
-### v0.3 - Provider Abstraction (IMPLEMENTED)
+## Output
 
-Phase 3 is complete! The framework now has a **provider-agnostic abstraction** that supports:
-- **Mock** (testing, no API)
-- **OpenAI** (GPT models)
-- **Claude** (Anthropic models)
+Each categorized file gets a metadata JSON:
 
-**Provider Factory Pattern:**
-```python
-from runtime.tools import get_llm_provider
-
-provider = get_llm_provider("mock")      # Deterministic testing
-provider = get_llm_provider("openai")    # OpenAI GPT
-provider = get_llm_provider("claude")    # Claude
-```
-
-**Configuration Examples:**
-```yaml
-# Mock provider (default, testing)
-- action: "llm.analyze"
-  params:
-    text: "${read_document.document_text}"
-    provider: "mock"
-
-# OpenAI provider (production)
-- action: "llm.analyze"
-  params:
-    text: "${read_document.document_text}"
-    provider: "openai"
-    model: "gpt-3.5-turbo"  # or "gpt-4"
-    api_key: "${OPENAI_API_KEY}"
-
-# Claude provider (production alternative)
-- action: "llm.analyze"
-  params:
-    text: "${read_document.document_text}"
-    provider: "claude"
-    model: "claude-3-sonnet-20240229"  # or "claude-3-opus"
-    api_key: "${ANTHROPIC_API_KEY}"
-```
-
-**Key Achievements:**
-- Same output structure across all providers
-- One-line configuration change to switch providers
-- Provider factory with case-insensitive selection
-- Full error handling for all providers
-- 8 new tests for Claude provider and provider switching
-
-**Using Different Providers:**
-```bash
-# Mock (no setup, testing)
-python run.py config.yaml
-
-# OpenAI (production)
-OPENAI_API_KEY="sk-..." python run.py config.openai.yaml
-
-# Claude (production alternative)
-ANTHROPIC_API_KEY="sk-ant-..." python run.py config.claude.yaml
-```
-
-**Testing Providers (without API costs):**
-```bash
-# All provider tests use mocked clients
-pytest tests/test_document_categorizer.py -k "claude or openai or provider" -v
-pytest tests/test_document_categorizer.py::TestLLMTool::test_provider_switching -v
-```
-
-**Complete Provider Guide:**
-See [LLM_PROVIDERS.md](../../docs/LLM_PROVIDERS.md) for:
-- Detailed setup for each provider
-- Cost comparison
-- Model selection guide
-- Production recommendations
-
-## Why This Design Matters
-
-1. **Configuration Over Code**
-   - Non-technical users can modify routing logic
-   - Change category thresholds, add routes, adjust prompts - no deployment needed
-
-2. **Deterministic Testing**
-   - Mock provider ensures reproducible results
-   - Test routing logic before integrating real LLM API
-
-3. **Gradual Integration**
-   - Start with mock for proof-of-concept
-   - Swap to OpenAI for production
-   - Later add Claude or other providers
-   - Each upgrade is a config change, not code refactor
-
-4. **Single Responsibility**
-   - Agent does one thing: categorize and route documents
-   - All complexity lives in the workflow config
-   - Tool implementations stay simple and composable
-
-## Testing the Agent
-
-### Test Files (Mock Scenarios)
-Create test documents in `INBOX_PATH`:
-
-**error_log.txt** (triggers error category)
-```
-System error occurred: Database connection failed
-Problem: Connection timeout after 30 seconds
-```
-
-**success_report.txt** (triggers success category)
-```
-Task completed successfully.
-All validations passed.
-```
-
-**warning_notice.txt** (triggers warning category)
-```
-Please use caution with the following approach.
-Attention needed for edge cases.
-```
-
-### Expected Output
-```
-inbox/
-  (empty after processing)
-errors/
-  error_log.txt
-  error_log.txt.meta.json
-processed/
-  success_report.txt
-  success_report.txt.meta.json
-review/
-  warning_notice.txt
-  warning_notice.txt.meta.json
-```
-
-### Metadata Example
 ```json
 {
-  "filename": "error_log.txt",
-  "timestamp": "2026-01-15T10:50:29Z",
+  "filename": "error.txt",
   "category": "error",
-  "tags": ["system-related", "detailed"],
+  "tags": ["system-related"],
   "confidence": 0.95,
   "summary": "Text classified as error",
   "analysis": {
-    "word_count": 15,
-    "character_count": 87,
+    "word_count": 10,
     "provider": "mock",
     "model": "mock-v1"
   }
 }
 ```
 
-## Architecture Decisions
+## Troubleshooting
 
-### Why Mock Provider First?
-- No API costs during development
-- Instant deterministic responses
-- Easy to test routing logic
-- Clear upgrade path to real LLM
+**Files not moving?**
+- Check `INBOX_PATH` exists and is readable
+- Check other path variables are set
+- Check agent log file (e.g., `document_categorizer.log`)
 
-### Why Nested Conditionals?
-- Demonstrates framework's conditional branching
-- Shows how to handle multiple categories
-- Routes can be extended without changing workflow logic
+**API key error?**
+- Verify `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` is set
+- Check key format is correct
 
-### Why Metadata Alongside Documents?
-- JSON metadata validates against schema
-- Enables downstream systems to process results
-- Future: send metadata to other agents/APIs
+**Wrong categorization?**
+- Mock provider uses keyword matching (not AI)
+- Use OpenAI or Claude for better accuracy
 
-## Limitations (By Design)
+## Files in This Folder
 
-- **Mock LLM is keyword-based**: Not true AI inference
-  - Real OpenAI integration in v0.2
-  - Demonstrates the upgrade path
+- `config.yaml` - Mock provider configuration
+- `config.openai.yaml` - OpenAI provider configuration
+- `config.claude.yaml` - Claude provider configuration
+- `schema.json` - Metadata validation schema
+- `run.py` - Quick start script
+- `AGENTS.md` - This file
 
-- **Single document per trigger**: File watcher processes files sequentially
-  - Shows framework behavior clearly
-  - v0.5: May add batch processing
+## Next
 
-- **No memory**: Agent doesn't remember previous documents
-  - Stateless by design (framework principle)
-  - External storage (logs, metadata files) is the memory
-
-## Next Steps
-
-1. **Run the mock version**: Verify routing logic works
-2. **Write test documents**: See categorization in action
-3. **Inspect metadata**: Validate schema and output structure
-4. **Plan OpenAI integration**: Design v0.2 configuration changes
-5. **Extend categories**: Add domain-specific routing rules (YAML-only)
+See root `USER_GUIDE.md` for detailed setup and testing instructions.

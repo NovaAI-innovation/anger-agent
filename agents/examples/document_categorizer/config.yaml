@@ -48,11 +48,11 @@ workflows:
           data: {
             "filename": "${trigger.file_name}",
             "timestamp": "2026-01-15T10:50:29Z",
-            "category": "${analysis_result.category}",
-            "tags": "${analysis_result.tags}",
-            "confidence": "${analysis_result.confidence}",
-            "summary": "${analysis_result.summary}",
-            "analysis": "${analysis_result.analysis}"
+            "category": "${analyze_content.analysis_result.category}",
+            "tags": "${analyze_content.analysis_result.tags}",
+            "confidence": "${analyze_content.analysis_result.confidence}",
+            "summary": "${analyze_content.analysis_result.summary}",
+            "analysis": "${analyze_content.analysis_result.analysis}"
           }
         output: "metadata_json"
         on_error: "fail"
@@ -60,7 +60,7 @@ workflows:
       # Step 4: Route based on category (deterministic conditional logic)
       - id: "route_by_category"
         action: "conditional"
-        condition: "${analysis_result.category} == error"
+        condition: "'${analyze_content.analysis_result.category}' == 'error'"
 
         if_true:
           # Route to error folder
@@ -88,7 +88,7 @@ workflows:
           # Check if success category
           - id: "check_success"
             action: "conditional"
-            condition: "${analysis_result.category} == success"
+            condition: "'${analyze_content.analysis_result.category}' == 'success'"
 
             if_true:
               # Route to processed folder
@@ -132,7 +132,7 @@ workflows:
                 action: "log"
                 params:
                   level: "info"
-                  message: "→ Categorized as ${analysis_result.category}: ${trigger.file_name}"
+                  message: "-> Categorized as ${analyze_content.analysis_result.category}: ${trigger.file_name}"
 
 tools:
   - name: "file.read"
