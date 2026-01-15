@@ -181,17 +181,79 @@ pytest tests/test_document_categorizer.py::TestLLMTool::test_openai_llm_analyze_
 pytest tests/test_document_categorizer.py -k openai -v
 ```
 
-### v0.3 - Provider Abstraction (FUTURE)
+### v0.3 - Provider Abstraction (IMPLEMENTED)
+
+Phase 3 is complete! The framework now has a **provider-agnostic abstraction** that supports:
+- **Mock** (testing, no API)
+- **OpenAI** (GPT models)
+- **Claude** (Anthropic models)
+
+**Provider Factory Pattern:**
+```python
+from runtime.tools import get_llm_provider
+
+provider = get_llm_provider("mock")      # Deterministic testing
+provider = get_llm_provider("openai")    # OpenAI GPT
+provider = get_llm_provider("claude")    # Claude
+```
+
+**Configuration Examples:**
 ```yaml
+# Mock provider (default, testing)
 - action: "llm.analyze"
   params:
     text: "${read_document.document_text}"
-    provider: "${LLM_PROVIDER}"  # From env or config
-    model: "${LLM_MODEL}"        # From env or config
-    api_key: "${LLM_API_KEY}"    # From env
+    provider: "mock"
+
+# OpenAI provider (production)
+- action: "llm.analyze"
+  params:
+    text: "${read_document.document_text}"
+    provider: "openai"
+    model: "gpt-3.5-turbo"  # or "gpt-4"
+    api_key: "${OPENAI_API_KEY}"
+
+# Claude provider (production alternative)
+- action: "llm.analyze"
+  params:
+    text: "${read_document.document_text}"
+    provider: "claude"
+    model: "claude-3-sonnet-20240229"  # or "claude-3-opus"
+    api_key: "${ANTHROPIC_API_KEY}"
 ```
 
-Switch between Claude, OpenAI, local models by changing environment variables only.
+**Key Achievements:**
+- Same output structure across all providers
+- One-line configuration change to switch providers
+- Provider factory with case-insensitive selection
+- Full error handling for all providers
+- 8 new tests for Claude provider and provider switching
+
+**Using Different Providers:**
+```bash
+# Mock (no setup, testing)
+python run.py config.yaml
+
+# OpenAI (production)
+OPENAI_API_KEY="sk-..." python run.py config.openai.yaml
+
+# Claude (production alternative)
+ANTHROPIC_API_KEY="sk-ant-..." python run.py config.claude.yaml
+```
+
+**Testing Providers (without API costs):**
+```bash
+# All provider tests use mocked clients
+pytest tests/test_document_categorizer.py -k "claude or openai or provider" -v
+pytest tests/test_document_categorizer.py::TestLLMTool::test_provider_switching -v
+```
+
+**Complete Provider Guide:**
+See [LLM_PROVIDERS.md](../../docs/LLM_PROVIDERS.md) for:
+- Detailed setup for each provider
+- Cost comparison
+- Model selection guide
+- Production recommendations
 
 ## Why This Design Matters
 
