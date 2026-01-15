@@ -30,10 +30,10 @@ hub:
 # ============================================================================
 
 environment:
-  INBOX_PATH: "/tmp/agent_inbox"
-  PROCESSED_PATH: "/tmp/agent_processed"
-  ERRORS_PATH: "/tmp/agent_errors"
-  SCHEMA_PATH: "./schema.json"
+  INBOX_PATH: "${AGENT_INBOX_PATH:./data/inbox}"
+  PROCESSED_PATH: "${AGENT_PROCESSED_PATH:./data/processed}"
+  ERRORS_PATH: "${AGENT_ERRORS_PATH:./data/errors}"
+  SCHEMA_PATH: "${SCHEMA_PATH:./schema.json}"
 
 # ============================================================================
 # TRIGGERS: When should workflows execute?
@@ -168,8 +168,8 @@ tools:
 # ============================================================================
 
 logging:
-  level: "info"  # Options: debug, info, warning, error
-  file: "/tmp/file_validator.log"
+  level: "${LOG_LEVEL:info}"  # Options: debug, info, warning, error
+  file: "${LOG_FILE:./logs/file_validator.log}"
   format: "json"
   log_triggers: true
   log_workflow_steps: true

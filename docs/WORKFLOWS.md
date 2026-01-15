@@ -133,7 +133,7 @@ ${read_file.content}  # Use the output
 ```yaml
 # In config.yaml:
 environment:
-  INBOX_PATH: "/tmp/inbox"
+  INBOX_PATH: "./data/inbox"
 
 # In workflow:
 - id: "watch_inbox"
@@ -471,13 +471,13 @@ Keep conditionals readable:
 
 # In another terminal, trigger event:
 # For file_watch:
-cp /tmp/test.json /tmp/agent_inbox/
+cp ./test.json ./data/inbox/
 
 # Check logs:
-tail -f /tmp/my_agent.log
+tail -f ./my_agent.log
 
 # Check output:
-ls -la /tmp/agent_processed/
+ls -la ./data/processed/
 ```
 
 ### Log Inspection

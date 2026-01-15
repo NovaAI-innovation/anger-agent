@@ -207,7 +207,7 @@ agent_type: "task_executor"
 triggers:
   - id: "file_trigger"
     type: "file_watch"
-    path: "/tmp/inbox"
+    path: "./data/inbox"
     patterns: ["*.json"]
     workflow_id: "process"
 """)
@@ -217,7 +217,7 @@ triggers:
             trigger = config.triggers[0]
             assert trigger["id"] == "file_trigger"
             assert trigger["type"] == "file_watch"
-            assert trigger["path"] == "/tmp/inbox"
+            assert trigger["path"] == "./data/inbox"
             assert trigger["patterns"] == ["*.json"]
 
     def test_tools_configuration(self):
@@ -254,14 +254,14 @@ agent_type: "task_executor"
 
 logging:
   level: "debug"
-  file: "/tmp/test.log"
+  file: "./test.log"
   format: "json"
 """)
             config = Config(str(config_path))
 
             log_config = config.logging_config
             assert log_config["level"] == "debug"
-            assert log_config["file"] == "/tmp/test.log"
+            assert log_config["file"] == "./test.log"
             assert log_config["format"] == "json"
 
     def test_logging_defaults(self):
@@ -293,9 +293,9 @@ class TestFileValidatorConfiguration:
             pytest.skip(f"file_validator example not found at {config_path}")
 
         # Set required environment variables
-        os.environ["INBOX_PATH"] = "/tmp/agent_inbox"
-        os.environ["PROCESSED_PATH"] = "/tmp/agent_processed"
-        os.environ["ERRORS_PATH"] = "/tmp/agent_errors"
+        os.environ["INBOX_PATH"] = "./data/inbox"
+        os.environ["PROCESSED_PATH"] = "./data/processed"
+        os.environ["ERRORS_PATH"] = "./data/errors"
         os.environ["SCHEMA_PATH"] = "./schema.json"
 
         try:
@@ -318,9 +318,9 @@ class TestFileValidatorConfiguration:
             pytest.skip(f"file_validator example not found at {config_path}")
 
         # Set required environment variables
-        os.environ["INBOX_PATH"] = "/tmp/agent_inbox"
-        os.environ["PROCESSED_PATH"] = "/tmp/agent_processed"
-        os.environ["ERRORS_PATH"] = "/tmp/agent_errors"
+        os.environ["INBOX_PATH"] = "./data/inbox"
+        os.environ["PROCESSED_PATH"] = "./data/processed"
+        os.environ["ERRORS_PATH"] = "./data/errors"
         os.environ["SCHEMA_PATH"] = "./schema.json"
 
         try:

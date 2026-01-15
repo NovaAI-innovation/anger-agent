@@ -36,12 +36,23 @@ hub:
 # ============================================================================
 # 3. ENVIRONMENT & PATHS
 # ============================================================================
+#
+# Use environment variables for paths to support Windows and Linux.
+# Syntax: ${VAR_NAME:default_value}
+#   - ${VAR_NAME} reads from environment variable VAR_NAME
+#   - ${VAR_NAME:default} uses default_value if VAR_NAME not set
+#   - Use relative paths (./data/inbox) for portability
+#
 
 environment:
-  # TODO: Add your environment variables here
-  # Example:
-  # DATA_PATH: "/path/to/data"
-  # SCHEMA_PATH: "/path/to/schema"
+  # Default paths - customize in .env file
+  INBOX_PATH: "${AGENT_INBOX_PATH:./data/inbox}"
+  PROCESSED_PATH: "${AGENT_PROCESSED_PATH:./data/processed}"
+  ERRORS_PATH: "${AGENT_ERRORS_PATH:./data/errors}"
+
+  # Logging paths
+  LOG_LEVEL: "${LOG_LEVEL:info}"
+  LOG_FILE: "${LOG_FILE:./logs/agent.log}"
 
 # ============================================================================
 # 4. TRIGGERS: When should workflows execute?
@@ -124,10 +135,13 @@ tools:
 # ============================================================================
 
 logging:
-  level: "info"  # Options: debug, info, warning, error
-  file: "/tmp/my_agent.log"
+  level: "${LOG_LEVEL:info}"  # Options: debug, info, warning, error
+  file: "${LOG_FILE:./logs/agent.log}"
   format: "json"
   max_size_mb: 100
+  log_triggers: true
+  log_workflow_steps: true
+  log_tool_calls: true
 
 # ============================================================================
 # HELP

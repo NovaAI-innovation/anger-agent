@@ -48,10 +48,10 @@ For each file:
    python run.py
 
 2. Drop a CSV file:
-   cp data.csv /tmp/agent_inbox/
+   cp data.csv ./data/inbox/
 
 3. Check output:
-   ls /tmp/agent_processed/
+   ls ./data/processed/
 ```
 
 ---
@@ -145,7 +145,7 @@ Where should logs go?
 ```yaml
 logging:
   level: "info"
-  file: "/tmp/my_data_processor.log"
+  file: "./my_data_processor.log"
 ```
 
 ---
@@ -361,7 +361,7 @@ workflows:
 
 **Check logs:**
 ```bash
-tail -f /tmp/my_data_processor.log
+tail -f ./my_data_processor.log
 ```
 
 **Verify config:**

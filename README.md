@@ -33,17 +33,17 @@ All of this is defined in your `config.yaml`. No Python modifications required.
 ### 3. Test It
 ```bash
 # In another terminal:
-echo '{"id": 1, "name": "Test User", "email": "test@example.com"}' > /tmp/agent_inbox/valid.json
+echo '{"id": 1, "name": "Test User", "email": "test@example.com"}' > ./data/inbox/valid.json
 
 # Watch the agent process it:
-# ✓ Valid file moves to /tmp/agent_processed/
-# Check: ls -la /tmp/agent_processed/
+# ✓ Valid file moves to ./data/processed/
+# Check: ls -la ./data/processed/
 
 # Now try invalid data:
-echo '{"id": 1, "name": "Test User"}' > /tmp/agent_inbox/invalid.json
+echo '{"id": 1, "name": "Test User"}' > ./data/inbox/invalid.json
 
 # Invalid file logged to errors:
-# Check: cat /tmp/agent_errors/invalid.json.log
+# Check: cat ./data/errors/invalid.json.log
 ```
 
 ### 4. Create Your Own Agent
@@ -68,10 +68,10 @@ Plain English documentation of what your agent does:
 Validates JSON files against a schema
 
 ## What This Agent Does
-- Watches /tmp/agent_inbox for new files
+- Watches ./data/inbox for new files
 - Validates against schema
-- Moves valid → /tmp/agent_processed
-- Logs invalid → /tmp/agent_errors
+- Moves valid → ./data/processed
+- Logs invalid → ./data/errors
 ```
 
 ### 2. **config.yaml** - The Brain
@@ -84,7 +84,7 @@ agent_type: "task_executor"
 triggers:
   - id: "new_json_file"
     type: "file_watch"
-    path: "/tmp/agent_inbox"
+    path: "./data/inbox"
     patterns: ["*.json"]
     workflow_id: "validate_and_process"
 
@@ -110,7 +110,7 @@ workflows:
           - action: "file.move"
             params:
               source: "${trigger.file_path}"
-              dest: "/tmp/agent_processed/${trigger.file_name}"
+              dest: "./data/processed/${trigger.file_name}"
         if_false:
           - action: "log"
             params:

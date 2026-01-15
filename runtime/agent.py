@@ -52,7 +52,7 @@ class Agent:
 
         # Set up logging
         log_config = self.config.logging_config
-        log_file = log_config.get("file", f"/tmp/{self.config.agent_id}.log")
+        log_file = log_config.get("file", f"./{self.config.agent_id}.log")
         log_level = log_config.get("level", "info").upper()
 
         self.logger = setup_logger(self.config.agent_id, log_file, log_level)

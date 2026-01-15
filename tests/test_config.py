@@ -108,7 +108,7 @@ environment:
 
     def test_nested_interpolation(self):
         """Test environment variable in nested structures"""
-        os.environ["TEST_PATH"] = "/tmp/test"
+        os.environ["TEST_PATH"] = "./data/test"
         with tempfile.TemporaryDirectory() as tmpdir:
             config_path = Path(tmpdir) / "config.yaml"
             config_path.write_text("""
@@ -120,7 +120,7 @@ triggers:
     path: "${TEST_PATH}"
 """)
             config = Config(str(config_path))
-            assert config.triggers[0]["path"] == "/tmp/test"
+            assert config.triggers[0]["path"] == "./data/test"
 
 
 class TestConfigAccessors:
@@ -145,7 +145,7 @@ tools:
     enabled: true
 logging:
   level: "debug"
-  file: "/tmp/test.log"
+  file: "./test.log"
 """)
             return Config(str(config_path))
 
@@ -184,7 +184,7 @@ logging:
         config = self.get_test_config()
         log_config = config.logging_config
         assert log_config["level"] == "debug"
-        assert log_config["file"] == "/tmp/test.log"
+        assert log_config["file"] == "./test.log"
 
     def test_get_method(self):
         """Test get() method for arbitrary keys"""

@@ -243,7 +243,7 @@ await Agent.run()
 ### Event Processing
 
 ```
-File appears: /tmp/agent_inbox/data.json
+File appears: ./data/inbox/data.json
     ↓
 TriggerHandler.on_created(event)
     ├─ Check path matches

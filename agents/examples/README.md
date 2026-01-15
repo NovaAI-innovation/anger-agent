@@ -27,7 +27,7 @@ All agents in this directory are **production-ready** with complete test coverag
 ```bash
 # Default (mock with environment variables)
 cd file_validator
-INBOX_PATH="/tmp/inbox" PROCESSED_PATH="/tmp/processed" ERRORS_PATH="/tmp/errors" SCHEMA_PATH="./schema.json" python run.py
+INBOX_PATH="./data/inbox" PROCESSED_PATH="./data/processed" ERRORS_PATH="./data/errors" SCHEMA_PATH="./schema.json" python run.py
 ```
 
 **Files**:
@@ -62,7 +62,7 @@ INBOX_PATH="/tmp/inbox" PROCESSED_PATH="/tmp/processed" ERRORS_PATH="/tmp/errors
 cd document_categorizer
 python run.py
 # or explicitly:
-INBOX_PATH="/tmp/inbox" ERRORS_PATH="/tmp/errors" PROCESSED_PATH="/tmp/processed" REVIEW_PATH="/tmp/review" python run.py
+INBOX_PATH="./data/inbox" ERRORS_PATH="./data/errors" PROCESSED_PATH="./data/processed" REVIEW_PATH="./data/review" python run.py
 ```
 
 **Provider**: Mock (deterministic, keyword-based)
@@ -73,7 +73,7 @@ INBOX_PATH="/tmp/inbox" ERRORS_PATH="/tmp/errors" PROCESSED_PATH="/tmp/processed
 #### config.openai.yaml (OpenAI GPT)
 ```bash
 cd document_categorizer
-OPENAI_API_KEY="sk-..." INBOX_PATH="/tmp/inbox" ERRORS_PATH="/tmp/errors" PROCESSED_PATH="/tmp/processed" REVIEW_PATH="/tmp/review" python -c "
+OPENAI_API_KEY="sk-..." INBOX_PATH="./data/inbox" ERRORS_PATH="./data/errors" PROCESSED_PATH="./data/processed" REVIEW_PATH="./data/review" python -c "
 from runtime.agent import Agent
 agent = Agent(config_path='config.openai.yaml')
 agent.run_sync()
@@ -88,7 +88,7 @@ agent.run_sync()
 #### config.claude.yaml (Claude)
 ```bash
 cd document_categorizer
-ANTHROPIC_API_KEY="sk-ant-..." INBOX_PATH="/tmp/inbox" ERRORS_PATH="/tmp/errors" PROCESSED_PATH="/tmp/processed" REVIEW_PATH="/tmp/review" python -c "
+ANTHROPIC_API_KEY="sk-ant-..." INBOX_PATH="./data/inbox" ERRORS_PATH="./data/errors" PROCESSED_PATH="./data/processed" REVIEW_PATH="./data/review" python -c "
 from runtime.agent import Agent
 agent = Agent(config_path='config.claude.yaml')
 agent.run_sync()
@@ -244,38 +244,38 @@ agents/examples/
 
 ```bash
 # 1. Set up directories
-mkdir -p /tmp/agent_test/{inbox,processed,errors}
+mkdir -p ./data/{inbox,processed,errors}
 
 # 2. Create a test file
-echo '{"id": 1, "name": "John", "email": "john@example.com"}' > /tmp/agent_test/inbox/valid.json
+echo '{"id": 1, "name": "John", "email": "john@example.com"}' > ./data/inbox/valid.json
 
 # 3. Run agent (set env vars)
 cd file_validator
-INBOX_PATH="/tmp/agent_test/inbox" PROCESSED_PATH="/tmp/agent_test/processed" ERRORS_PATH="/tmp/agent_test/errors" SCHEMA_PATH="./schema.json" python run.py
+INBOX_PATH="./data/inbox" PROCESSED_PATH="./data/processed" ERRORS_PATH="./data/errors" SCHEMA_PATH="./schema.json" python run.py
 
 # 4. Check output
-ls /tmp/agent_test/processed/  # Should contain valid.json and valid.json.meta.json
+ls ./data/processed/  # Should contain valid.json and valid.json.meta.json
 ```
 
 ### Document Categorizer Example
 
 ```bash
 # 1. Set up directories
-mkdir -p /tmp/doc_test/{inbox,processed,errors,review}
+mkdir -p ./data/{inbox,processed,errors,review}
 
 # 2. Create test documents
-echo "System error occurred: Database connection failed" > /tmp/doc_test/inbox/error.txt
-echo "Task completed successfully" > /tmp/doc_test/inbox/success.txt
-echo "Please use caution with this approach" > /tmp/doc_test/inbox/warning.txt
+echo "System error occurred: Database connection failed" > ./data/inbox/error.txt
+echo "Task completed successfully" > ./data/inbox/success.txt
+echo "Please use caution with this approach" > ./data/inbox/warning.txt
 
 # 3. Run agent with mock provider
 cd document_categorizer
-INBOX_PATH="/tmp/doc_test/inbox" PROCESSED_PATH="/tmp/doc_test/processed" ERRORS_PATH="/tmp/doc_test/errors" REVIEW_PATH="/tmp/doc_test/review" python run.py
+INBOX_PATH="./data/inbox" PROCESSED_PATH="./data/processed" ERRORS_PATH="./data/errors" REVIEW_PATH="./data/review" python run.py
 
 # 4. Check output
-ls /tmp/doc_test/errors/      # error.txt
-ls /tmp/doc_test/processed/   # success.txt
-ls /tmp/doc_test/review/      # warning.txt
+ls ./data/errors/      # error.txt
+ls ./data/processed/   # success.txt
+ls ./data/review/      # warning.txt
 ```
 
 ---

@@ -7,7 +7,13 @@ metadata:
   description: "Categorizes documents using mock LLM analysis and routes to outputs"
   use_case: "Deterministic file I/O + Variable LLM inference"
 
-environment: {}
+environment:
+  INBOX_PATH: "${AGENT_INBOX_PATH:./data/inbox}"
+  PROCESSED_PATH: "${AGENT_PROCESSED_PATH:./data/processed}"
+  ERRORS_PATH: "${AGENT_ERRORS_PATH:./data/errors}"
+  REVIEW_PATH: "${AGENT_REVIEW_PATH:./data/review}"
+  LOG_LEVEL: "${LOG_LEVEL:debug}"
+  LOG_FILE: "${LOG_FILE:./logs/document_categorizer.log}"
 
 triggers:
   - id: "new_document"
@@ -151,8 +157,8 @@ tools:
     enabled: true
 
 logging:
-  level: "debug"
-  file: "./document_categorizer.log"
+  level: "${LOG_LEVEL:debug}"
+  file: "${LOG_FILE:./logs/document_categorizer.log}"
   format: "text"
   log_triggers: true
   log_workflow_steps: true

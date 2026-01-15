@@ -22,7 +22,6 @@ echo ""
 echo "1. Creating data directories..."
 mkdir -p data/inbox data/processed data/errors
 mkdir -p logs
-mkdir -p /tmp/agent_inbox /tmp/agent_processed /tmp/agent_errors
 echo "   ✓ Directories created"
 
 echo ""
@@ -70,7 +69,7 @@ echo "  1. Run example agent:"
 echo "     ./scripts/run.sh examples/file_validator"
 echo ""
 echo "  2. In another terminal, test it:"
-echo "     echo '{\"id\": 1, \"name\": \"Test\", \"email\": \"test@example.com\"}' > /tmp/agent_inbox/valid.json"
+echo "     echo '{\"id\": 1, \"name\": \"Test\", \"email\": \"test@example.com\"}' > ./data/inbox/valid.json"
 echo ""
 echo "  3. Create your own agent:"
 echo "     ./scripts/new_agent.sh my_agent"

@@ -12,45 +12,84 @@ Automatically categorizes text documents based on content and moves them to appr
 ## Quick Start
 
 ```bash
-# Create test folders
-mkdir -p /tmp/doc_test/{inbox,processed,errors,review}
+# Setup (creates data directories and .env)
+cd agents/examples/document_categorizer
+./setup.sh              # or setup.bat on Windows
 
 # Create a test file
-echo "System error occurred" > /tmp/doc_test/inbox/test.txt
+echo "System error occurred" > ./data/inbox/test.txt
 
-# Run agent
-cd agents/examples/document_categorizer
-INBOX_PATH="/tmp/doc_test/inbox" \
-PROCESSED_PATH="/tmp/doc_test/processed" \
-ERRORS_PATH="/tmp/doc_test/errors" \
-REVIEW_PATH="/tmp/doc_test/review" \
+# Run agent (uses env vars from .env)
 python run.py
 
 # Check result
-ls /tmp/doc_test/errors/  # test.txt should be here
+ls ./data/errors/  # test.txt should be here
 ```
 
 ## Configuration
 
-### Three Provider Options
+### LLM Provider Selection
 
-**Default (Mock) - config.yaml**
+Configure which LLM provider to use via the `LLM_PROVIDER` environment variable in your `.env` file.
+
+**Setup**:
 ```bash
+# Copy template
+cp .env.example .env
+
+# Edit .env and set provider
+LLM_PROVIDER=mock      # or: openai, claude
+```
+
+### Provider Options
+
+#### 1. Mock Provider (Default)
+- **Cost**: Free
+- **Speed**: Instant (<1ms)
+- **Quality**: Keyword-based (good for testing)
+- **Setup**: No API key needed
+
+```bash
+# Run with mock (default)
+./setup.sh              # Creates .env with mock provider
 python run.py
-# Uses keyword-based mock (free, instant)
 ```
 
-**OpenAI - config.openai.yaml**
+#### 2. OpenAI Provider
+- **Cost**: ~$0.50-1.50 per 1,000 documents
+- **Speed**: 200-500ms per document
+- **Quality**: High (GPT-3.5-turbo)
+- **Setup**: Requires OPENAI_API_KEY
+
 ```bash
-OPENAI_API_KEY="sk-..." python -c "from runtime.agent import Agent; Agent(config_path='config.openai.yaml').run_sync()"
-# Uses GPT-3.5-turbo (fast, $)
+# Setup
+./setup.sh
+# Edit .env:
+# LLM_PROVIDER=openai
+# OPENAI_API_KEY=sk-...
+
+python run.py
 ```
 
-**Claude - config.claude.yaml**
+#### 3. Claude Provider
+- **Cost**: ~$0.50-2.00 per 1,000 documents
+- **Speed**: 300-800ms per document
+- **Quality**: Very High (Claude)
+- **Setup**: Requires ANTHROPIC_API_KEY
+
 ```bash
-ANTHROPIC_API_KEY="sk-ant-..." python -c "from runtime.agent import Agent; Agent(config_path='config.claude.yaml').run_sync()"
-# Uses Claude 3 Sonnet (quality, $$)
+# Setup
+./setup.sh
+# Edit .env:
+# LLM_PROVIDER=claude
+# ANTHROPIC_API_KEY=sk-ant-...
+
+python run.py
 ```
+
+---
+
+**Note**: The config.yaml file works with all providers. Provider selection is managed entirely through environment variables in .env - see docs/LLM_PROVIDERS.md for details.
 
 ## How It Works
 
@@ -139,13 +178,16 @@ Each categorized file gets a metadata JSON:
 
 ## Files in This Folder
 
-- `config.yaml` - Mock provider configuration
-- `config.openai.yaml` - OpenAI provider configuration
-- `config.claude.yaml` - Claude provider configuration
+- `config.yaml` - Agent behavior and workflow definition
 - `schema.json` - Metadata validation schema
-- `run.py` - Quick start script
+- `.env.example` - Configuration template (copy to `.env` and customize)
+- `setup.sh` / `setup.bat` - Setup script (creates directories and .env)
+- `run.py` - Agent entry point
 - `AGENTS.md` - This file
 
-## Next
+## Next Steps
 
-See root `USER_GUIDE.md` for detailed setup and testing instructions.
+1. Run `./setup.sh` (or `setup.bat` on Windows)
+2. Edit `.env` to configure paths and LLM provider
+3. Run `python run.py` to start the agent
+4. See `../../docs/AGENT_SETUP.md` for detailed configuration guide

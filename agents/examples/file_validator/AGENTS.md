@@ -5,7 +5,7 @@ Validates JSON data files against a schema and organizes them into appropriate d
 
 ## What This Agent Does
 
-This agent monitors a file directory (by default `/tmp/agent_inbox`) for new JSON files.
+This agent monitors a file directory (by default `./data/inbox`) for new JSON files.
 
 When a file appears:
 
@@ -13,10 +13,10 @@ When a file appears:
 2. **Parses** it as JSON
 3. **Validates** it against a schema (`schema.json`)
 4. **If valid:**
-   - Moves file to `/tmp/agent_processed/`
+   - Moves file to `./data/processed/`
    - Logs success to output log
 5. **If invalid:**
-   - Writes error details to `/tmp/agent_errors/`
+   - Writes error details to `./data/errors/`
    - Logs validation errors for review
 
 ## Example Workflow
@@ -31,7 +31,7 @@ Agent processes:
 ├─ Read: ✓ Success
 ├─ Parse JSON: ✓ Success
 ├─ Validate: ✓ Success (all required fields present)
-├─ Move to /tmp/agent_processed/user.json
+├─ Move to ./data/processed/user.json
 └─ Log: ✓ Validated successfully
 ```
 
@@ -46,7 +46,7 @@ Agent processes:
 ├─ Read: ✓ Success
 ├─ Parse JSON: ✓ Success
 ├─ Validate: ✗ Failed (missing required field: email)
-├─ Log error: /tmp/agent_errors/incomplete.json.log
+├─ Log error: ./data/errors/incomplete.json.log
 └─ Log: ✗ Validation failed
 ```
 
@@ -54,7 +54,7 @@ Agent processes:
 
 See `config.yaml` for detailed settings:
 
-- **Watched directory:** `INBOX_PATH` environment variable (default: `/tmp/agent_inbox`)
+- **Watched directory:** `INBOX_PATH` environment variable (default: `./data/inbox`)
 - **File patterns:** Configured to watch `*.json` files
 - **Validation schema:** `schema.json` in this directory
 
@@ -96,7 +96,7 @@ python run.py
 In another terminal:
 
 ```bash
-echo '{"id": 1, "name": "Test User", "email": "test@example.com"}' > /tmp/agent_inbox/valid.json
+echo '{"id": 1, "name": "Test User", "email": "test@example.com"}' > ./data/inbox/valid.json
 ```
 
 Agent output:
@@ -104,19 +104,19 @@ Agent output:
 INFO | Step[read_file] file.read → success
 INFO | Step[parse_json] json.parse → success
 INFO | Step[validate] json.validate → success
-INFO | Moving valid.json → /tmp/agent_processed/
+INFO | Moving valid.json → ./data/processed/
 ```
 
 Check result:
 ```bash
-ls /tmp/agent_processed/
+ls ./data/processed/
 # Output: valid.json
 ```
 
 ### 3. Test with Invalid Data
 
 ```bash
-echo '{"id": 1, "name": "Test"}' > /tmp/agent_inbox/invalid.json
+echo '{"id": 1, "name": "Test"}' > ./data/inbox/invalid.json
 ```
 
 Agent output:
@@ -124,12 +124,12 @@ Agent output:
 INFO | Step[read_file] file.read → success
 INFO | Step[parse_json] json.parse → success
 WARNING | Step[validate] json.validate → failed
-INFO | Logging errors to /tmp/agent_errors/invalid.json.log
+INFO | Logging errors to ./data/errors/invalid.json.log
 ```
 
 Check result:
 ```bash
-cat /tmp/agent_errors/invalid.json.log
+cat ./data/errors/invalid.json.log
 # Output: ["Missing required field: email"]
 ```
 
@@ -139,9 +139,12 @@ You can customize this agent by editing `config.yaml`:
 
 ### Change the Watched Directory
 
-```yaml
-environment:
-  INBOX_PATH: "/your/path/here"
+Edit `.env` to customize the path:
+
+```bash
+INBOX_PATH="./my-custom-input-folder"
+PROCESSED_PATH="./my-custom-output-folder"
+ERRORS_PATH="./my-custom-errors-folder"
 ```
 
 ### Add More Workflow Steps
@@ -199,7 +202,7 @@ This agent demonstrates key framework principles:
 
 Check that directories exist:
 ```bash
-mkdir -p /tmp/agent_inbox /tmp/agent_processed /tmp/agent_errors
+mkdir -p ./data/{inbox,processed,errors}
 ```
 
 ### Files not being processed
@@ -211,7 +214,7 @@ ps aux | grep file_validator
 
 Check logs:
 ```bash
-tail -f /tmp/file_validator.log
+tail -f ./file_validator.log
 ```
 
 ### Validation always fails
@@ -220,7 +223,7 @@ Review `schema.json` to ensure it matches your data structure.
 
 Check validation errors:
 ```bash
-cat /tmp/agent_errors/*.log
+cat ./data/errors/*.log
 ```
 
 ## Next Steps
