@@ -1,0 +1,12 @@
+# Core Dependencies
+PyYAML>=5.4  # Use any recent version, allows wheel installation
+watchdog>=3.0.0
+python-json-logger>=2.0.0
+
+# LLM Providers (optional, required only for respective providers)
+openai>=1.0.0  # Required for OpenAI GPT models
+anthropic>=0.15.0  # Required for Claude models (Anthropic)
+
+# Development
+pytest>=7.0
+pytest-asyncio>=0.20

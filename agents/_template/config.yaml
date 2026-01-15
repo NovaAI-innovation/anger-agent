@@ -1,0 +1,147 @@
+# Agent Configuration Template
+#
+# This file defines your agent's behavior.
+# Edit this file to customize your agent - NO PYTHON CODE NEEDED!
+#
+# Structure:
+# 1. Agent Identity: Who is this agent?
+# 2. Triggers: When should workflows execute?
+# 3. Workflows: What should happen?
+# 4. Tools: What capabilities are available?
+# 5. Logging: How should we log?
+
+# ============================================================================
+# 1. AGENT IDENTITY
+# ============================================================================
+
+agent_id: "my_agent"  # TODO: Change this to your agent's name
+agent_type: "task_executor"  # Options: task_executor, llm_inference, hybrid
+agent_seed: "silver-mountain-dawn-pulse-stellar-whisper-night-four"
+
+metadata:
+  version: "1.0"
+  description: "TODO: Describe what this agent does"
+  author: "TODO: Your name"
+  created_at: "2025-01-15"
+
+# ============================================================================
+# 2. HUB CONNECTIVITY (v0.5 feature)
+# ============================================================================
+
+hub:
+  enabled: false  # Set to true when connecting to hub (v0.5)
+  endpoint: "ws://localhost:8000"
+  hub_seed: "brave-forest-tiger-marble-quantum-seven-shadow-nine"
+
+# ============================================================================
+# 3. ENVIRONMENT & PATHS
+# ============================================================================
+
+environment:
+  # TODO: Add your environment variables here
+  # Example:
+  # DATA_PATH: "/path/to/data"
+  # SCHEMA_PATH: "/path/to/schema"
+
+# ============================================================================
+# 4. TRIGGERS: When should workflows execute?
+# ============================================================================
+
+triggers:
+  # TODO: Add your triggers here
+  # Example file watch trigger:
+  # - id: "watch_inbox"
+  #   type: "file_watch"
+  #   path: "/path/to/watch"
+  #   patterns: ["*.json"]
+  #   workflow_id: "my_workflow"
+  #
+  # See docs/TRIGGERS.md for full trigger documentation
+
+# ============================================================================
+# 5. WORKFLOWS: What should happen?
+# ============================================================================
+
+workflows:
+  # TODO: Define your workflows here
+  # Example workflow:
+  # my_workflow:
+  #   steps:
+  #     - id: "step1"
+  #       action: "tool_name"
+  #       params:
+  #         param: "value"
+  #       output: "result_var"
+  #
+  # Available actions:
+  # - Any tool name (file.read, json.parse, etc.)
+  # - "conditional" (if/then/else)
+  #
+  # See docs/WORKFLOWS.md for full workflow documentation
+
+# ============================================================================
+# 6. TOOLS: What capabilities are available?
+# ============================================================================
+
+tools:
+  # Built-in tools (uncomment to enable)
+  - name: "file.read"
+    enabled: false
+    description: "Read file contents"
+
+  - name: "file.write"
+    enabled: false
+    description: "Write to file"
+
+  - name: "file.move"
+    enabled: false
+    description: "Move file"
+
+  - name: "json.parse"
+    enabled: false
+    description: "Parse JSON"
+
+  - name: "json.validate"
+    enabled: false
+    description: "Validate JSON"
+
+  - name: "log"
+    enabled: false
+    description: "Write to log"
+
+  - name: "message.send"
+    enabled: false
+    description: "Send message (v0.5)"
+
+  # TODO: Add custom tools here
+  # - name: "custom.my_tool"
+  #   enabled: true
+  #   custom_module: "tools.my_tool"
+  #   custom_function: "my_function"
+
+# ============================================================================
+# 7. LOGGING
+# ============================================================================
+
+logging:
+  level: "info"  # Options: debug, info, warning, error
+  file: "/tmp/my_agent.log"
+  format: "json"
+  max_size_mb: 100
+
+# ============================================================================
+# HELP
+# ============================================================================
+#
+# Need help? See:
+# - docs/WORKFLOWS.md - How to write workflows
+# - docs/TOOLS.md - Available tools reference
+# - docs/CREATE_AGENT.md - Step-by-step agent creation guide
+# - agents/examples/file_validator/ - Working example
+#
+# Quick reference:
+# - Triggers: What events cause workflows to run?
+# - Workflows: Sequences of tool invocations
+# - Tools: Individual capabilities (file I/O, JSON, logging, etc.)
+# - Variables: ${trigger.*}, ${step_output.*}, ${environment.*}
+#

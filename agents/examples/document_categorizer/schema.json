@@ -1,0 +1,67 @@
+{
+  "type": "object",
+  "title": "Categorized Document Metadata",
+  "description": "Schema for document categorization metadata",
+  "properties": {
+    "filename": {
+      "type": "string",
+      "description": "Original filename of the document"
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO 8601 timestamp when document was processed"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["error", "success", "warning", "info", "unknown"],
+      "description": "Assigned category from LLM analysis"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags extracted from content analysis"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Confidence score of the categorization (0.0 to 1.0)"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Brief summary of the analysis"
+    },
+    "analysis": {
+      "type": "object",
+      "description": "Detailed analysis metadata",
+      "properties": {
+        "word_count": {
+          "type": "integer",
+          "description": "Number of words in document"
+        },
+        "character_count": {
+          "type": "integer",
+          "description": "Number of characters in document"
+        },
+        "provider": {
+          "type": "string",
+          "description": "LLM provider used (mock, openai, claude, etc.)"
+        },
+        "model": {
+          "type": "string",
+          "description": "LLM model version"
+        }
+      }
+    }
+  },
+  "required": [
+    "filename",
+    "timestamp",
+    "category",
+    "tags",
+    "confidence",
+    "summary"
+  ]
+}

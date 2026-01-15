@@ -1,0 +1,103 @@
+agent_id: "file_validator_test"
+agent_type: "task_executor"
+agent_seed: "test-seed"
+
+metadata:
+  version: "1.0"
+  description: "Test configuration with hardcoded paths"
+
+environment: {}
+
+triggers:
+  - id: "new_json_file"
+    type: "file_watch"
+    path: "/tmp/agent_inbox"
+    patterns: ["*.json"]
+    workflow_id: "validate_and_process"
+    description: "Watch for new JSON files in inbox"
+
+workflows:
+  validate_and_process:
+    description: "Read file, validate against schema, organize into folders"
+    timeout_seconds: 60
+
+    steps:
+      - id: "read_file"
+        action: "file.read"
+        params:
+          path: "${trigger.file_path}"
+        output: "file_content"
+        on_error: "fail"
+
+      - id: "parse_json"
+        action: "json.parse"
+        params:
+          content: "${read_file.file_content}"
+        output: "parsed_data"
+        on_error: "fail"
+
+      - id: "validate"
+        action: "json.validate"
+        params:
+          data: "${parse_json.parsed_data}"
+          schema_path: "./agents/examples/file_validator/schema.json"
+        output: "validation_result"
+        on_error: "fail"
+
+      - id: "check_validation"
+        action: "conditional"
+        condition: "${validate.validation_result.valid} == true"
+
+        if_true:
+          - id: "move_to_processed"
+            action: "file.move"
+            params:
+              source: "${trigger.file_path}"
+              dest: "/tmp/agent_processed/${trigger.file_name}"
+            on_error: "fail"
+
+          - id: "log_success"
+            action: "log"
+            params:
+              level: "info"
+              message: "✓ Validated and processed: ${trigger.file_name}"
+
+        if_false:
+          - id: "log_errors"
+            action: "file.write"
+            params:
+              path: "/tmp/agent_errors/${trigger.file_name}.log"
+              content: "Validation errors: ${validate.validation_result.errors}"
+            on_error: "fail"
+
+          - id: "log_failure"
+            action: "log"
+            params:
+              level: "warning"
+              message: "✗ Validation failed: ${trigger.file_name}"
+
+tools:
+  - name: "file.read"
+    enabled: true
+  - name: "file.write"
+    enabled: true
+  - name: "file.move"
+    enabled: true
+  - name: "file.find"
+    enabled: true
+  - name: "json.parse"
+    enabled: true
+  - name: "json.validate"
+    enabled: true
+  - name: "json.stringify"
+    enabled: true
+  - name: "log"
+    enabled: true
+
+logging:
+  level: "debug"
+  file: "/tmp/file_validator_test.log"
+  format: "json"
+  log_triggers: true
+  log_workflow_steps: true
+  log_tool_calls: true

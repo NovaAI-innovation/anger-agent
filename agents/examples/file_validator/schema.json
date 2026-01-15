@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "title": "User Schema",
+  "description": "Schema for validating user data files",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Unique user identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Full name of user"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email address"
+    }
+  },
+  "required": ["id", "name", "email"],
+  "additionalProperties": false
+}
